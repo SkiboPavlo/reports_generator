@@ -1,0 +1,19 @@
+%h2 Template
+%table.table
+  %thead
+    %tr
+      %th Name
+      %th Price
+      %th Count
+      %th Sum
+  %tbody
+    - @template.products.each do |product|
+      %tr
+        %td= product.name
+        %td= product.price
+        %td= product.count
+        %td= product.sum
+= link_to 'Add product', new_template_product_path(@template)
+%br
+= link_to "Generate report", generate_report_template_path(@template), method: :post
+

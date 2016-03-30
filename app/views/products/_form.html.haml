@@ -1,0 +1,9 @@
+= simple_form_for [@template,@product], role: 'form' do |f|
+  .form_group
+    = f.input :name, class: 'form-conrol'
+  .form_group
+    = f.input :price, class: 'form-conrol'
+  .form_group
+    = f.input :count, class: 'form-conrol'
+  %br
+  = f.submit class: 'btn btn-primary'
