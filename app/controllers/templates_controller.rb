@@ -15,8 +15,7 @@ class TemplatesController < ApplicationController
   end
 
   def show
-
-  end
+      end
 
   def generate_report
     pdf = ReportPdf.new(@template.products)
