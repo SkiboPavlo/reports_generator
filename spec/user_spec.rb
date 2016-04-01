@@ -10,13 +10,13 @@ RSpec.describe User do
   end
 
   example 'it should create user' do
-    expect(subject.size).to eq 36
+    expect(subject).to eq
   end
 
   example 'it should successfully log_in' do
-    expect(subject.size).to eq 36
+    expect(subject).to eq
   end
 
 example 'it should successfully log_out' do
-    expect(subject.size).to eq 36
+    expect(subject).to eq
   end

@@ -32,7 +32,7 @@
               %li= link_to "Templates", templates_path
             %ul.nav.navbar-nav.pull-right
               %li= link_to "Add Template", new_template_path, class: 'btn btn-xs btn-success'
-              %li= link_to "#{current_user.admin?} Log out", destroy_user_session_path, method: :delete, class: 'btn btn-xs btn-default'
+              %li= link_to "#{current_user.reporter?} Log out", destroy_user_session_path, method: :delete, class: 'btn btn-xs btn-default'
 
     .container
       .row

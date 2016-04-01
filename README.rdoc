@@ -15,15 +15,15 @@ The report counts the total amount of program products
 
 
 Gems:
-1 ) Rails
-2 ) Devise
-3 ) CanCan
-4 ) Mongoid
-5 ) TwitterBootstrap
-6 ) Haml
-7 ) Scss
-8 ) RSpec
-9 ) Prawn
+1. Rails
+2. Devise
+3. CanCan
+4. Mongoid
+5. TwitterBootstrap
+6. Haml
+7. Scss
+8. RSpec
+9. Prawn
 
 
 Please feel free to use a different markup language if you do not plan to run

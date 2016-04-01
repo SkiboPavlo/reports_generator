@@ -10,13 +10,13 @@ RSpec.describe Product do
   end
 
    example 'it should create product' do
-    expect(subject.size).to eq 36
+    expect(subject).to eq Product.new
   end
 
    example 'it should update product' do
-    expect(subject.size).to eq 36
+    expect(subject).to eq
   end
 
    example 'it should destroy product' do
-    expect(subject.size).to eq 36
+    expect(subject).to eq
   end

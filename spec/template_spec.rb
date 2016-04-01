@@ -8,16 +8,16 @@ RSpec.describe Template do
   end
 
    example 'it should generate report' do
-    expect(subject.size).to eq 36
+    expect(subject).to eq
 
    example 'it should create template' do
-    expect(subject.size).to eq 36
+    expect(subject).to eq
   end
 
    example 'it should update template' do
-    expect(subject.size).to eq 36
+    expect(subject).to eq
   end
 
    example 'it should destroy template' do
-    expect(subject.size).to eq 36
+    expect(subject).to eq
   end
