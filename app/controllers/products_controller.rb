@@ -19,7 +19,7 @@ class ProductsController < ApplicationController
     @product = Product.new(product_params)
 
     if @product.save
-      flash[:success] = ['Product created']
+      flash[:success] = 'Product created'
       redirect_to template_path(@product.template)
     else
       flash[:error] = @product.errors.full_messages
@@ -29,7 +29,7 @@ class ProductsController < ApplicationController
 
   def update
     if @product.update_attributes(product_params)
-      flash[:success] = ['Product updated']
+      flash[:success] = 'Product updated'
       redirect_to template_product_path
     else
       flash[:error] = @product.errors.full_messages
@@ -39,7 +39,7 @@ class ProductsController < ApplicationController
 
   def destroy
     @product.destroy
-    flash[:success] = ['Product destroyed']
+    flash[:success] = 'Product destroyed'
     redirect_to :back
   end
 
