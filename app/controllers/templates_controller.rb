@@ -27,7 +27,7 @@ class TemplatesController < ApplicationController
     @template = Template.new(template_params)
 
     if @template.save
-      flash[:success] = ['Template created']
+      flash[:success] = 'Template created'
       redirect_to new_template_product_path(@template)
     else
       flash[:error] = @template.errors.full_messages
@@ -37,7 +37,7 @@ class TemplatesController < ApplicationController
 
   def update
     if @template.update_attributes(template_params)
-      flash[:success] = ['Template updated']
+      flash[:success] = 'Template updated'
       redirect_to templates_path
     else
       flash[:error] = @template.errors.full_messages
@@ -47,7 +47,7 @@ class TemplatesController < ApplicationController
 
   def destroy
     @template.destroy
-    flash[:success] = ['Template destroyed']
+    flash[:success] = 'Template destroyed'
     redirect_to :back
   end
 
