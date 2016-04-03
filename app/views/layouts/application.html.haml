@@ -25,22 +25,21 @@
           %span.icon-bar
           %span.icon-bar
           %span.icon-bar
-        %a.navbar-brand(href="#") TestTask
+
         .navbar-collapse.collapse.navbar-responsive-collapse
           - if current_user
             %ul.nav.navbar-nav
-              %li= link_to "Templates", templates_path
+              %li= link_to "Templates", admin_templates_path
             %ul.nav.navbar-nav.pull-right
-              %li= link_to "Add Template", new_template_path, class: 'btn btn-xs btn-success'
-              %li= link_to "#{current_user.reporter?} Log out", destroy_user_session_path, method: :delete, class: 'btn btn-xs btn-default'
+              %li= link_to current_user.type, edit_user_registration_path(current_user), class: 'btn btn-default'
+              %li= link_to "Log out", destroy_user_session_path, method: :delete, class: 'btn btn-default'
 
     .container
       .row
-        = flash[:error]
         - flash.each do |type, message|
           %div{:class => "alert #{bootstrap_class_for(type)} fade in"}
-          %button.close{"data-dismiss" => "alert"} ×
-          = message
+            %button.close{"data-dismiss" => "alert"} ×
+            = message
 
         = yield
       %hr

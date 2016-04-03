@@ -1,0 +1,24 @@
+%h2 Template
+%table.table
+  %thead
+    %tr
+      %th Name
+      %th Price
+      %th Count
+      %th Sum
+  %tbody
+    - @template.products.each do |product|
+      %tr
+        %td= product.name
+        %td= product.price
+        %td= product.count
+        %td= product.sum
+- if can? :create, Product
+  = link_to 'Add product', new_admin_template_product_path(@template), class: 'btn btn-xs btn-success'
+%br
+%br
+- if can? :generate_report, @template
+  = link_to "Generate report", generate_report_admin_template_path(@template), method: :post, class: 'btn btn-xs btn-primary'
+%br
+%br
+= link_to "Back", admin_templates_path, class: 'btn btn-xs btn-default'

@@ -30,15 +30,11 @@ gem 'mongoid', '~> 4.0.0'
 gem 'cancancan'
 gem 'devise'
 gem 'haml-rails'
-gem 'rspec-rails'
 gem 'prawn'
 gem 'prawn-table'
 gem 'simple_form'
-# Use ActiveModel has_secure_password
-# gem 'bcrypt', '~> 3.1.7'
-
-# Use Unicorn as the app server
-# gem 'unicorn'
+gem 'unicorn'
+gem 'bcrypt', '~> 3.1.7'
 
 # Use Capistrano for deployment
 # gem 'capistrano-rails', group: :development

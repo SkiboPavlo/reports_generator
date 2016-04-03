@@ -1,0 +1,12 @@
+%h1 Templates:
+%ul
+  - @templates.each do |template|
+    %li
+      = link_to template.name, admin_template_path(template)
+      - if can? :update, template
+        = link_to 'Edit', edit_admin_template_path(template), class: 'btn btn-sm btn-primary'
+      - if can? :destroy, template
+        = link_to 'Delete', admin_template_path(template), method: :delete, class: 'btn btn-sm btn-danger'
+- if can? :create, @template
+  = link_to 'Add template', new_admin_template_path, class: 'btn btn-xs btn-success'
+
