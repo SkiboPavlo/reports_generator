@@ -1,0 +1,715 @@
+From 52e8e41bf4d93da192ad2ed2ddde73c56300d2e7 Mon Sep 17 00:00:00 2001
+From: Pavlo Skibo <skibo@i.ua-pavlo-PC>
+Date: Sat, 2 Apr 2016 19:33:24 +0300
+Subject: [PATCH] test
+
+---
+ Gemfile                                           |  7 +-
+ Gemfile.lock                                      |  7 ++
+ app/controllers/templates_controller.rb           |  1 -
+ app/controllers/users/registrations_controller.rb | 43 ++++++------
+ app/models/ability.rb                             | 32 ++-------
+ app/models/user.rb                                | 17 ++---
+ app/views/devise/registrations/edit.html.erb      | 22 ++----
+ app/views/devise/registrations/new.html.haml      |  2 +-
+ app/views/layouts/application.html.haml           | 11 ++-
+ app/views/templates/index.html.haml               | 10 +--
+ app/views/templates/show.html.haml                |  6 +-
+ config/mongoid.yml                                | 83 +----------------------
+ config/routes.rb                                  | 57 +---------------
+ hello.pdf                                         | 69 -------------------
+ spec/product_spec.rb                              | 22 ------
+ spec/template_spec.rb                             | 23 -------
+ spec/user_spec.rb                                 | 22 ------
+ 17 files changed, 64 insertions(+), 370 deletions(-)
+ delete mode 100644 hello.pdf
+ delete mode 100644 spec/product_spec.rb
+ delete mode 100644 spec/template_spec.rb
+ delete mode 100644 spec/user_spec.rb
+
+diff --git a/Gemfile b/Gemfile
+index 78ce9c4..1223273 100644
+--- a/Gemfile
++++ b/Gemfile
+@@ -34,11 +34,8 @@ gem 'rspec-rails'
+ gem 'prawn'
+ gem 'prawn-table'
+ gem 'simple_form'
+-# Use ActiveModel has_secure_password
+-# gem 'bcrypt', '~> 3.1.7'
+-
+-# Use Unicorn as the app server
+-# gem 'unicorn'
++gem 'unicorn'
++gem 'bcrypt', '~> 3.1.7'
+ 
+ # Use Capistrano for deployment
+ # gem 'capistrano-rails', group: :development
+diff --git a/Gemfile.lock b/Gemfile.lock
+index 9e3bf12..ca22176 100644
+--- a/Gemfile.lock
++++ b/Gemfile.lock
+@@ -89,6 +89,7 @@ GEM
+       railties (>= 4.2.0)
+       thor (>= 0.14, < 2.0)
+     json (1.8.3)
++    kgio (2.10.0)
+     less (2.6.0)
+       commonjs (~> 0.2.7)
+     less-rails (2.7.1)
+@@ -154,6 +155,7 @@ GEM
+       activesupport (= 4.2.6)
+       rake (>= 0.8.7)
+       thor (>= 0.18.1, < 2.0)
++    raindrops (0.16.0)
+     rake (11.1.2)
+     rdoc (4.2.2)
+       json (~> 1.4)
+@@ -220,6 +222,9 @@ GEM
+       thread_safe (~> 0.1)
+     uglifier (3.0.0)
+       execjs (>= 0.3.0, < 3)
++    unicorn (5.1.0)
++      kgio (~> 2.6)
++      raindrops (~> 0.7)
+     warden (1.2.6)
+       rack (>= 1.0)
+     web-console (2.3.0)
+@@ -232,6 +237,7 @@ PLATFORMS
+   ruby
+ 
+ DEPENDENCIES
++  bcrypt (~> 3.1.7)
+   byebug
+   cancancan
+   coffee-rails (~> 4.1.0)
+@@ -255,6 +261,7 @@ DEPENDENCIES
+   turbolinks
+   twitter-bootstrap-rails
+   uglifier (>= 1.3.0)
++  unicorn
+   web-console (~> 2.0)
+ 
+ BUNDLED WITH
+diff --git a/app/controllers/templates_controller.rb b/app/controllers/templates_controller.rb
+index e3379e0..acb7dfe 100644
+--- a/app/controllers/templates_controller.rb
++++ b/app/controllers/templates_controller.rb
+@@ -15,7 +15,6 @@ class TemplatesController < ApplicationController
+   end
+ 
+   def show
+-
+   end
+ 
+   def generate_report
+diff --git a/app/controllers/users/registrations_controller.rb b/app/controllers/users/registrations_controller.rb
+index af84698..fc4f59b 100644
+--- a/app/controllers/users/registrations_controller.rb
++++ b/app/controllers/users/registrations_controller.rb
+@@ -1,16 +1,16 @@
+ class Users::RegistrationsController < Devise::RegistrationsController
+ # before_filter :configure_sign_up_params, only: [:create]
+ # before_filter :configure_account_update_params, only: [:update]
+-
++  before_action :configure_permitted_parameters
+   # GET /resource/sign_up
+   # def new
+   #   super
+   # end
+ 
+   # POST /resource
+-  def create
+-    super
+-  end
++  # def create
++  #   super
++  # end
+ 
+   # GET /resource/edit
+   # def edit
+@@ -36,25 +36,24 @@ class Users::RegistrationsController < Devise::RegistrationsController
+   #   super
+   # end
+ 
+-  # protected
+-
+-  # If you have extra params to permit, append them to the sanitizer.
+-  # def configure_sign_up_params
+-  #   devise_parameter_sanitizer.for(:sign_up) << :attribute
+-  # end
++  protected
+ 
+-  # If you have extra params to permit, append them to the sanitizer.
+-  # def configure_account_update_params
+-  #   devise_parameter_sanitizer.for(:account_update) << :attribute
+-  # end
++  def update_resource(resource, params)
++    resource.update_without_password(params)
++  end
+ 
+-  # The path used after sign up.
+-  # def after_sign_up_path_for(resource)
+-  #   super(resource)
+-  # end
++  def after_update_path_for(resource)
++    edit_user_registration_path(resource)
++  end
+ 
+-  # The path used after sign up for inactive accounts.
+-  # def after_inactive_sign_up_path_for(resource)
+-  #   super(resource)
+-  # end
++  def configure_permitted_parameters
++    devise_parameter_sanitizer.for(:sign_up) do |u|
++      u.permit(:email, :password,
++        :password_confirmation, :admin)
++    end
++    devise_parameter_sanitizer.for(:account_update) do |u|
++      u.permit(:email, :password,
++        :password_confirmation, :admin)
++    end
++  end
+ end
+diff --git a/app/models/ability.rb b/app/models/ability.rb
+index cb0cd81..3d73dca 100644
+--- a/app/models/ability.rb
++++ b/app/models/ability.rb
+@@ -2,31 +2,11 @@ class Ability
+   include CanCan::Ability
+ 
+   def initialize(user)
+-    # Define abilities for the passed in user here. For example:
+-    #
+-      user ||= User.new # guest user (not logged in)
+-      if user.reporter?
+-        can :create, :template
+-      else
+-        can :menege, :all
+-      end
+-
+-    # The first argument to `can` is the action you are giving the user
+-    # permission to do.
+-    # If you pass :manage it will apply to every action. Other common actions
+-    # here are :read, :create, :update and :destroy.
+-    #
+-    # The second argument is the resource the user can perform the action on.
+-    # If you pass :all it will apply to every resource. Otherwise pass a Ruby
+-    # class of the resource.
+-    #
+-    # The third argument is an optional hash of conditions to further filter the
+-    # objects.
+-    # For example, here the user can only update published articles.
+-    #
+-    #   can :update, Article, :published => true
+-    #
+-    # See the wiki for details:
+-    # https://github.com/CanCanCommunity/cancancan/wiki/Defining-Abilities
++    user ||= User.new
++    if user.reporter?
++      can :generate_report, Template
++    else
++      can :manage, :all
++    end
+   end
+ end
+diff --git a/app/models/user.rb b/app/models/user.rb
+index 5eadde0..ac14508 100644
+--- a/app/models/user.rb
++++ b/app/models/user.rb
+@@ -22,17 +22,8 @@ class User
+   field :last_sign_in_at,    type: Time
+   field :current_sign_in_ip, type: String
+   field :last_sign_in_ip,    type: String
+-  field :admin,               type: Integer
+-  ## Confirmable
+-  # field :confirmation_token,   type: String
+-  # field :confirmed_at,         type: Time
+-  # field :confirmation_sent_at, type: Time
+-  # field :unconfirmed_email,    type: String # Only if using reconfirmable
+-
+-  ## Lockable
+-  # field :failed_attempts, type: Integer, default: 0 # Only if lock strategy is :failed_attempts
+-  # field :unlock_token,    type: String # Only if unlock strategy is :email or :both
+-  # field :locked_at,       type: Time
++  field :admin,              type: Integer, default: 0
++
+   def admin?
+     admin == 1
+   end
+@@ -41,5 +32,9 @@ class User
+     !admin?
+   end
+ 
++  def type
++    admin? ? 'ADMIN' : 'Reporter'
++  end
++
+ 
+ end
+diff --git a/app/views/devise/registrations/edit.html.erb b/app/views/devise/registrations/edit.html.erb
+index 3ea40f0..28cf918 100644
+--- a/app/views/devise/registrations/edit.html.erb
++++ b/app/views/devise/registrations/edit.html.erb
+@@ -8,23 +8,9 @@
+     <%= f.email_field :email, autofocus: true %>
+   </div>
+ 
+-  <% if devise_mapping.confirmable? && resource.pending_reconfirmation? %>
+-    <div>Currently waiting confirmation for: <%= resource.unconfirmed_email %></div>
+-  <% end %>
+-
+-  <div class="field">
+-    <%= f.label :password %> <i>(leave blank if you don't want to change it)</i><br />
+-    <%= f.password_field :password, autocomplete: "off" %>
+-  </div>
+-
+-  <div class="field">
+-    <%= f.label :password_confirmation %><br />
+-    <%= f.password_field :password_confirmation, autocomplete: "off" %>
+-  </div>
+-
+   <div class="field">
+-    <%= f.label :current_password %> <i>(we need your current password to confirm your changes)</i><br />
+-    <%= f.password_field :current_password, autocomplete: "off" %>
++    <%= f.label :admin %>
++    <%= f.check_box :admin %>
+   </div>
+ 
+   <div class="actions">
+@@ -32,8 +18,8 @@
+   </div>
+ <% end %>
+ 
+-<h3>Cancel my account</h3>
++<h3>Destroy my account</h3>
+ 
+-<p>Unhappy? <%= button_to "Cancel my account", registration_path(resource_name), data: { confirm: "Are you sure?" }, method: :delete %></p>
++<p>Unhappy? <%= button_to "Destroy my account", registration_path(resource_name), data: { confirm: "Are you sure?" }, method: :delete %></p>
+ 
+ <%= link_to "Back", :back %>
+diff --git a/app/views/devise/registrations/new.html.haml b/app/views/devise/registrations/new.html.haml
+index 4a5c046..7400d38 100644
+--- a/app/views/devise/registrations/new.html.haml
++++ b/app/views/devise/registrations/new.html.haml
+@@ -11,7 +11,7 @@
+     = f.input :password, autocomplete: "off"
+   .field
+     = f.input :password_confirmation, autocomplete: "off"
+-    = f.input :admin, as: :integer
++    = f.input :admin, as: :boolean
+   .actions
+     = f.submit "Sign up"
+ = render "devise/shared/links"
+diff --git a/app/views/layouts/application.html.haml b/app/views/layouts/application.html.haml
+index af5f26d..fe47878 100644
+--- a/app/views/layouts/application.html.haml
++++ b/app/views/layouts/application.html.haml
+@@ -25,22 +25,21 @@
+           %span.icon-bar
+           %span.icon-bar
+           %span.icon-bar
+-        %a.navbar-brand(href="#") TestTask
++        .navbar-brand= link_to 'TestTask', root_path
+         .navbar-collapse.collapse.navbar-responsive-collapse
+           - if current_user
+             %ul.nav.navbar-nav
+               %li= link_to "Templates", templates_path
+             %ul.nav.navbar-nav.pull-right
+-              %li= link_to "Add Template", new_template_path, class: 'btn btn-xs btn-success'
+-              %li= link_to "#{current_user.reporter?} Log out", destroy_user_session_path, method: :delete, class: 'btn btn-xs btn-default'
++              %li= link_to current_user.type, edit_user_registration_path(current_user), class: 'btn btn-default'
++              %li= link_to "Log out", destroy_user_session_path, method: :delete, class: 'btn btn-default'
+ 
+     .container
+       .row
+-        = flash[:error]
+         - flash.each do |type, message|
+           %div{:class => "alert #{bootstrap_class_for(type)} fade in"}
+-          %button.close{"data-dismiss" => "alert"} ×
+-          = message
++            %button.close{"data-dismiss" => "alert"} ×
++            = message
+ 
+         = yield
+       %hr
+diff --git a/app/views/templates/index.html.haml b/app/views/templates/index.html.haml
+index 0d03713..e1bfe8f 100644
+--- a/app/views/templates/index.html.haml
++++ b/app/views/templates/index.html.haml
+@@ -3,8 +3,10 @@
+   - @templates.each do |template|
+     %li
+       = link_to template.name, template_path(template)
+-      = link_to 'Edit', edit_template_path(template), class: 'btn btn-sm btn-primary'
+-      = link_to 'Delete', template_path(template), method: :delete, class: 'btn btn-sm btn-danger'
+-- if can? :create, @templates.first
+-  = link_to 'Add template', new_template_path, class: 'btn btn-xs btn-success', type: "hidden" if @admin == 1
++      - if can? :update, template
++        = link_to 'Edit', edit_template_path(template), class: 'btn btn-sm btn-primary'
++      - if can? :destroy, template
++        = link_to 'Delete', template_path(template), method: :delete, class: 'btn btn-sm btn-danger'
++- if can? :create, @template
++  = link_to 'Add template', new_template_path, class: 'btn btn-xs btn-success'
+ 
+diff --git a/app/views/templates/show.html.haml b/app/views/templates/show.html.haml
+index 10b548a..b7dfa5d 100644
+--- a/app/views/templates/show.html.haml
++++ b/app/views/templates/show.html.haml
+@@ -13,10 +13,12 @@
+         %td= product.price
+         %td= product.count
+         %td= product.sum
+-= link_to 'Add product', new_template_product_path(@template), class: 'btn btn-xs btn-success'
++- if can? :create, Product
++  = link_to 'Add product', new_template_product_path(@template), class: 'btn btn-xs btn-success'
+ %br
+ %br
+-= link_to "Generate report", generate_report_template_path(@template), method: :post, class: 'btn btn-xs btn-primary'
++- if can? :generate_report, @template
++  = link_to "Generate report", generate_report_template_path(@template), method: :post, class: 'btn btn-xs btn-primary'
+ %br
+ %br
+ = link_to "Back", templates_path, class: 'btn btn-xs btn-default'
+diff --git a/config/mongoid.yml b/config/mongoid.yml
+index b4005ee..0c6d3d0 100644
+--- a/config/mongoid.yml
++++ b/config/mongoid.yml
+@@ -1,92 +1,13 @@
+ development:
+-  # Configure available database sessions. (required)
+   sessions:
+-    # Defines the default session. (required)
+     default:
+-      # Defines the name of the default database that Mongoid can connect to.
+-      # (required).
+       database: test_task_development
+-      # Provides the hosts the default session can connect to. Must be an array
+-      # of host:port pairs. (required)
+       hosts:
+         - localhost:27017
+       options:
+-        # Change the default write concern. (default = { w: 1 })
+-        # write:
+-        # w: 1
+-
+-        # Change the default consistency model to primary, secondary.
+-        # 'secondary' will send reads to secondaries, 'primary' sends everything
+-        # to master. (default: primary)
+-        # read: secondary_preferred
+-
+-        # How many times Moped should attempt to retry an operation after
+-        # failure. (default: The number of nodes in the cluster)
+-        # max_retries: 20
+-
+-        # The time in seconds that Moped should wait before retrying an
+-        # operation on failure. (default: 0.25)
+-        # retry_interval: 0.25
+-        
+-        # The connection pool size per-node.  This should match or exceed the
+-        # number of threads for a multi-threaded application. (default: 5)
+-        # pool_size: 5
+-        
+-        # The time in seconds that Moped should wait for the pool to provide
+-        # an available connection.  This number should probably remain at the 
+-        # default, unless for some reason you absolutely need to limit the
+-        # pool_size, as this wait is only used when the pool is saturated.
+-        # (default: 0.5)
+-        # pool_timeout: 0.5
+-
+-        # The time in seconds before Moped will timeout connection and node
+-        # operations. (default: 5)
+-        # timeout: 5
+-        
+-        # The amount of time in seconds between forced refreshes of node 
+-        # information including the discovery of new peers. (default: 300)
+-        # refresh_interval: 300
+-        
+-        # The amount of time in seconds that a node will be flagged as down.
+-        # (default: 30) 
+-        # down_interval: 30
+-        
+-        # Whether connections should use SSL. (default: nil/false)
+-        # ssl: false
+-        
+-        # Whether Moped will use the existing seeds/nodes to find other peers.
+-        # (default: true)
+-        # auto_discover: true
+-
+-
+-  # Configure Mongoid specific options. (optional)
+   options:
+-    # Includes the root model name in json serialization. (default: false)
+-    # include_root_in_json: false
+-
+-    # Include the _type field in serialization. (default: false)
+-    # include_type_for_serialization: false
+-
+-    # Preload all models in development, needed when models use
+-    # inheritance. (default: false)
+-    # preload_models: false
+-
+-    # Protect id and type from mass assignment. (default: true)
+-    # protect_sensitive_fields: true
+-
+-    # Raise an error when performing a #find and the document is not found.
+-    # (default: true)
+-    # raise_not_found_error: true
+-
+-    # Raise an error when defining a scope with the same name as an
+-    # existing method. (default: false)
+-    # scope_overwrite_exception: false
+-
+-    # Use Active Support's time zone in conversions. (default: true)
+-    # use_activesupport_time_zone: true
++    use_activesupport_time_zone: true
+ 
+-    # Ensure all times are UTC in the app side. (default: false)
+-    # use_utc: false
+ test:
+   sessions:
+     default:
+@@ -95,7 +16,5 @@ test:
+         - localhost:27017
+       options:
+         read: primary
+-        # In the test environment we lower the retries and retry interval to
+-        # low amounts for fast failures.
+         max_retries: 1
+         retry_interval: 0
+diff --git a/config/routes.rb b/config/routes.rb
+index 82e9b12..6888bf8 100644
+--- a/config/routes.rb
++++ b/config/routes.rb
+@@ -1,13 +1,7 @@
+ Rails.application.routes.draw do
+-  devise_for :users
+-  get 'persons/profile'
++  devise_for :users, controllers: { sessions: "users/sessions", registrations: "users/registrations" }
+ 
+-  # The priority is based upon order of creation: first created -> highest priority.
+-  # See how all your routes lay out with "rake routes".
+-
+-  # You can have the root of your site routed with "root"
+   root 'templates#index'
+-  get 'persons/profile', as: 'user_root'
+ 
+   resources :templates do
+     member do
+@@ -15,53 +9,4 @@ Rails.application.routes.draw do
+     end
+     resources :products
+   end
+-
+-  # Example of regular route:
+-  #   get 'products/:id' => 'catalog#view'
+-
+-  # Example of named route that can be invoked with purchase_url(id: product.id)
+-  #   get 'products/:id/purchase' => 'catalog#purchase', as: :purchase
+-
+-  # Example resource route (maps HTTP verbs to controller actions automatically):
+-  #   resources :products
+-
+-  # Example resource route with options:
+-  #   resources :products do
+-  #     member do
+-  #       get 'short'
+-  #       post 'toggle'
+-  #     end
+-  #
+-  #     collection do
+-  #       get 'sold'
+-  #     end
+-  #   end
+-
+-  # Example resource route with sub-resources:
+-  #   resources :products do
+-  #     resources :comments, :sales
+-  #     resource :seller
+-  #   end
+-
+-  # Example resource route with more complex sub-resources:
+-  #   resources :products do
+-  #     resources :comments
+-  #     resources :sales do
+-  #       get 'recent', on: :collection
+-  #     end
+-  #   end
+-
+-  # Example resource route with concerns:
+-  #   concern :toggleable do
+-  #     post 'toggle'
+-  #   end
+-  #   resources :posts, concerns: :toggleable
+-  #   resources :photos, concerns: :toggleable
+-
+-  # Example resource route within a namespace:
+-  #   namespace :admin do
+-  #     # Directs /admin/products/* to Admin::ProductsController
+-  #     # (app/controllers/admin/products_controller.rb)
+-  #     resources :products
+-  #   end
+ end
+diff --git a/hello.pdf b/hello.pdf
+deleted file mode 100644
+index 1a08cb6..0000000
+--- a/hello.pdf
++++ /dev/null
+@@ -1,69 +0,0 @@
+-%PDF-1.3
+-%\FF\FF\FF\FF
+-1 0 obj
+-<< /Creator <feff0050007200610077006e>
+-/Producer <feff0050007200610077006e>
+->>
+-endobj
+-2 0 obj
+-<< /Type /Catalog
+-/Pages 3 0 R
+->>
+-endobj
+-3 0 obj
+-<< /Type /Pages
+-/Count 1
+-/Kids [5 0 R]
+->>
+-endobj
+-4 0 obj
+-<< /Length 85
+->>
+-stream
+-q
+-
+-BT
+-36.0 747.384 Td
+-/F1.0 12 Tf
+-[<48656c6c6f2057> 30 <6f72> -15 <6c6421>] TJ
+-ET
+-
+-Q
+-
+-endstream
+-endobj
+-5 0 obj
+-<< /Type /Page
+-/Parent 3 0 R
+-/MediaBox [0 0 612.0 792.0]
+-/Contents 4 0 R
+-/Resources << /ProcSet [/PDF /Text /ImageB /ImageC /ImageI]
+-/Font << /F1.0 6 0 R
+->>
+->>
+->>
+-endobj
+-6 0 obj
+-<< /Type /Font
+-/Subtype /Type1
+-/BaseFont /Helvetica
+-/Encoding /WinAnsiEncoding
+->>
+-endobj
+-xref
+-0 7
+-0000000000 65535 f 
+-0000000015 00000 n 
+-0000000109 00000 n 
+-0000000158 00000 n 
+-0000000215 00000 n 
+-0000000350 00000 n 
+-0000000528 00000 n 
+-trailer
+-<< /Size 7
+-/Root 2 0 R
+-/Info 1 0 R
+->>
+-startxref
+-625
+-%%EOF
+diff --git a/spec/product_spec.rb b/spec/product_spec.rb
+deleted file mode 100644
+index 0dc690e..0000000
+--- a/spec/product_spec.rb
++++ /dev/null
+@@ -1,22 +0,0 @@
+-require 'spec_helper'
+-require 'rspec/rails'
+-
+-RSpec.describe Product do
+-
+-  example 'it should set only valid attributes' do
+-    expect(Product.new(:name)).to be_nil
+-    expect(Product.new(:price)).to be_nil
+-    expect(Product.new(:count)).to be_nil
+-  end
+-
+-   example 'it should create product' do
+-    expect(subject).to eq Product.new
+-  end
+-
+-   example 'it should update product' do
+-    expect(subject).to eq
+-  end
+-
+-   example 'it should destroy product' do
+-    expect(subject).to eq
+-  end
+diff --git a/spec/template_spec.rb b/spec/template_spec.rb
+deleted file mode 100644
+index b8a7eb2..0000000
+--- a/spec/template_spec.rb
++++ /dev/null
+@@ -1,23 +0,0 @@
+-require 'spec_helper'
+-require 'rspec/rails'
+-
+-RSpec.describe Template do
+-
+- example 'it should set only valid attributes' do
+-    expect(Template.new(:name)).to be_nil
+-  end
+-
+-   example 'it should generate report' do
+-    expect(subject).to eq
+-
+-   example 'it should create template' do
+-    expect(subject).to eq
+-  end
+-
+-   example 'it should update template' do
+-    expect(subject).to eq
+-  end
+-
+-   example 'it should destroy template' do
+-    expect(subject).to eq
+-  end
+diff --git a/spec/user_spec.rb b/spec/user_spec.rb
+deleted file mode 100644
+index b67e026..0000000
+--- a/spec/user_spec.rb
++++ /dev/null
+@@ -1,22 +0,0 @@
+-require 'spec_helper'
+-require 'rspec/rails'
+-
+-RSpec.describe User do
+-
+-  example 'it should set only valid attributes' do
+-    expect(User.new(:name)).to be_nil
+-    expect(User.new(:password)).to be_nil
+-    expect(User.new(:confirm_password)).to be_nil
+-  end
+-
+-  example 'it should create user' do
+-    expect(subject).to eq
+-  end
+-
+-  example 'it should successfully log_in' do
+-    expect(subject).to eq
+-  end
+-
+-example 'it should successfully log_out' do
+-    expect(subject).to eq
+-  end
+-- 
+2.6.4 (Apple Git-63)
+
