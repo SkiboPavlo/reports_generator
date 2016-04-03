@@ -29,7 +29,7 @@ Install instruction:
 1. git clone git@github.com:SkiboPavlo/reports_generator.git
 2. cd/reports_generator
 3. bundle
-4.
+4.rails s
 
 
 Please feel free to use a different markup language if you do not plan to run
